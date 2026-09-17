@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
@@ -43,7 +43,7 @@ export default function AdminKategoriPage() {
   const [deskripsi, setDeskripsi] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
 
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -135,7 +135,7 @@ export default function AdminKategoriPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string | number) => {
     try {
       await deleteKategoriSampah(id);
       setFeedback("Kategori berhasil dihapus.");
