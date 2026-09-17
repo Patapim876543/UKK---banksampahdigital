@@ -1,4 +1,4 @@
-﻿export interface ApiResponse<T = any> {
+export interface ApiResponse<T = any> {
   statusCode: number;
   success: boolean;
   message: string;
@@ -48,9 +48,11 @@ export type UserRole = "NASABAH" | "ADMIN";
 export interface RegisterNasabahDto {
   username: string;
   password: string;
-  namaLengkap: string;
+  namaLengkap?: string;
+  namaNasabah?: string;
   alamat: string;
-  nomorTelepon: string;
+  nomorTelepon?: string;
+  telp?: string;
   foto?: File | string | null;
 }
 
@@ -59,7 +61,8 @@ export interface RegisterAdminDto {
   password: string;
   namaUnit: string;
   namaPengelola: string;
-  nomorTelepon: string;
+  nomorTelepon?: string;
+  telp?: string;
 }
 
 export interface LoginDto {
@@ -68,23 +71,29 @@ export interface LoginDto {
 }
 
 export interface NasabahProfile {
-  id: number;
+  id: string | number;
+  userId?: string | number;
   username: string;
   namaLengkap: string;
+  namaNasabah?: string;
   alamat: string;
   nomorTelepon: string;
+  telp?: string;
   foto?: string | null;
   totalPoin: number;
+  saldoPoin?: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface AdminProfile {
-  id: number;
+  id: string | number;
+  userId?: string | number;
   username: string;
   namaUnit: string;
   namaPengelola: string;
   nomorTelepon: string;
+  telp?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -93,6 +102,8 @@ export interface AuthResponseData {
   role: UserRole;
   token: string;
   profile: NasabahProfile | AdminProfile;
+  nasabah?: any;
+  adminBank?: any;
 }
 
 export interface CurrentUserSession {
@@ -102,11 +113,12 @@ export interface CurrentUserSession {
 }
 
 // ================= KATEGORI SAMPAH =================
-export type JenisSampah = "PLASTIK" | "KERTAS" | "LOGAM" | "KACA" | "ORGANIK" | "LAINNYA";
+export type JenisSampah = "PLASTIK" | "KERTAS" | "LOGAM" | "KACA" | "ORGANIK" | "LAINNYA" | "plastik" | "kertas" | "logam" | "kaca";
 
 export interface KategoriSampah {
-  id: number;
+  id: string | number;
   nama: string;
+  namaKategori?: string;
   jenis: JenisSampah | string;
   hargaPerKg: number;
   poinPerKg: number;
@@ -117,7 +129,8 @@ export interface KategoriSampah {
 }
 
 export interface CreateKategoriSampahDto {
-  nama: string;
+  nama?: string;
+  namaKategori?: string;
   jenis: string;
   hargaPerKg: number;
   poinPerKg: number;
@@ -127,6 +140,7 @@ export interface CreateKategoriSampahDto {
 
 export interface UpdateKategoriSampahDto {
   nama?: string;
+  namaKategori?: string;
   jenis?: string;
   hargaPerKg?: number;
   poinPerKg?: number;
@@ -135,64 +149,80 @@ export interface UpdateKategoriSampahDto {
 }
 
 // ================= SETOR SAMPAH =================
-export type StatusSetor = "MENUNGGU_KONFIRMASI" | "DIVERIFIKASI" | "DITOLAK" | "SELESAI";
+export type StatusSetor = "MENUNGGU_KONFIRMASI" | "DIVERIFIKASI" | "DITOLAK" | "SELESAI" | "menunggu_konfirmasi" | "diverifikasi" | "ditolak" | "selesai";
 
 export interface ItemSetorDto {
-  kategoriId: number;
-  beratEstimasi: number;
+  kategoriId?: string | number;
+  kategoriSampahId?: string | number;
+  beratEstimasi?: number;
+  beratKg?: number;
   keterangan?: string;
 }
 
 export interface CreateSetorSampahDto {
   tanggalSetor?: string;
+  tanggal?: string;
   catatan?: string;
   items: ItemSetorDto[];
 }
 
 export interface VerifyItemSetorDto {
-  itemId: number;
-  beratRiil: number;
+  itemId?: string | number;
+  kategoriSampahId?: string | number;
+  beratRiil?: number;
+  beratKgReal?: number;
 }
 
 export interface VerifySetorSampahDto {
-  status: "DIVERIFIKASI" | "DITOLAK";
+  status: "DIVERIFIKASI" | "DITOLAK" | "diverifikasi" | "ditolak" | string;
   catatanAdmin?: string;
   items?: VerifyItemSetorDto[];
+  itemsReal?: VerifyItemSetorDto[];
 }
 
 export interface ItemSetoran {
-  id: number;
-  kategoriId: number;
+  id: string | number;
+  kategoriId: string | number;
+  kategoriSampahId?: string | number;
   kategori?: KategoriSampah;
+  kategoriSampah?: KategoriSampah;
   beratEstimasi: number;
+  beratKg?: number;
   beratRiil?: number | null;
+  beratKgReal?: number | null;
   poinEstimasi?: number;
+  subtotalPoin?: number;
   poinRiil?: number | null;
   keterangan?: string;
 }
 
 export interface Setoran {
-  id: number;
+  id: string | number;
   kodeSetor?: string;
-  nasabahId: number;
+  nasabahId: string | number;
   nasabah?: NasabahProfile;
   tanggalSetor: string;
+  tanggal?: string;
   status: StatusSetor;
   catatan?: string;
   catatanAdmin?: string;
   totalBeratEstimasi: number;
+  totalBeratKg?: number;
   totalBeratRiil?: number | null;
   totalPoinEstimasi: number;
+  totalPoin?: number;
   totalPoinRiil?: number | null;
   items: ItemSetoran[];
+  detailSetors?: any[];
   createdAt?: string;
   updatedAt?: string;
 }
 
 // ================= HADIAH / REWARDS =================
 export interface Hadiah {
-  id: number;
+  id: string | number;
   nama: string;
+  namaHadiah?: string;
   poinDibutuhkan: number;
   stok: number;
   deskripsi?: string;
@@ -202,7 +232,8 @@ export interface Hadiah {
 }
 
 export interface CreateHadiahDto {
-  nama: string;
+  nama?: string;
+  namaHadiah?: string;
   poinDibutuhkan: number;
   stok: number;
   deskripsi?: string;
@@ -211,6 +242,7 @@ export interface CreateHadiahDto {
 
 export interface UpdateHadiahDto {
   nama?: string;
+  namaHadiah?: string;
   poinDibutuhkan?: number;
   stok?: number;
   deskripsi?: string;
@@ -218,22 +250,24 @@ export interface UpdateHadiahDto {
 }
 
 // ================= PENUKARAN POIN =================
-export type StatusPenukaran = "MENUNGGU" | "DIPROSES" | "SELESAI" | "DITOLAK";
+export type StatusPenukaran = "MENUNGGU" | "DIPROSES" | "SELESAI" | "DITOLAK" | "diproses" | "selesai" | "ditolak";
 
 export interface CreatePenukaranPoinDto {
-  hadiahId: number;
+  hadiahId: string | number;
 }
 
 export interface PenukaranPoin {
-  id: number;
+  id: string | number;
   kodePenukaran?: string;
-  nasabahId: number;
+  nasabahId: string | number;
   nasabah?: NasabahProfile;
-  hadiahId: number;
+  hadiahId: string | number;
   hadiah?: Hadiah;
   poinDigunakan: number;
+  poinTerpakai?: number;
   status: StatusPenukaran;
   tanggalPengajuan: string;
+  tanggal?: string;
   tanggalSelesai?: string | null;
   catatan?: string;
   createdAt?: string;
@@ -250,28 +284,43 @@ export interface RekapRincianJenis {
 
 export interface RekapBulanan {
   bulan: string;
+  periode?: string;
   totalBerat: number;
   totalPoin: number;
   totalNominal?: number;
   rincianJenis: RekapRincianJenis[];
   totalPenukaran?: number;
   totalPoinDitukar?: number;
+  rekapitulasiTonase?: any;
+  breakdownJenisSampah?: any;
+  rekapitulasiPenukaranPoin?: any;
 }
 
 export interface DashboardSummaryNasabah {
   totalPoin: number;
+  saldoPoin?: number;
   totalSetoranSelesai: number;
+  totalPengajuanSetor?: number;
   totalPenukaran: number;
+  totalPenukaranHadiah?: number;
   totalBeratKg: number;
+  totalPoinDiperoleh?: number;
   setoranTerbaru?: Setoran[];
+  setorTerakhir?: any[];
   penukaranTerbaru?: PenukaranPoin[];
+  penukaranTerakhir?: any[];
 }
 
 export interface DashboardStatsAdmin {
   totalNasabah: number;
+  totalKategoriSampah?: number;
+  totalTransaksiSetor?: number;
+  totalHadiah?: number;
   totalSetoranPending: number;
   totalBeratTerkumpul: number;
+  totalBeratSampahKg?: number;
   totalPoinBeredar: number;
+  totalPoinTersalurkan?: number;
   totalPoinDitukar: number;
   transaksiTerbaru?: Setoran[];
 }
