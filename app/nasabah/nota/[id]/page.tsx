@@ -24,7 +24,7 @@ function NotaContent() {
   const searchParams = useSearchParams();
   const { user, logout } = useAuth();
 
-  const id = Number(params.id);
+  const id = params?.id ? String(params.id) : "";
   const type = searchParams.get("type") || "setor"; // "setor" | "penukaran"
 
   const [data, setData] = useState<any | null>(null);
