@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -35,7 +35,7 @@ function VerifikasiContent() {
 
   // Verification modal state
   const [activeSetoran, setActiveSetoran] = useState<Setoran | null>(null);
-  const [itemWeights, setItemWeights] = useState<Record<number, string>>({});
+  const [itemWeights, setItemWeights] = useState<Record<string, string>>({});
   const [adminNotes, setAdminNotes] = useState("");
   const [verifyAction, setVerifyAction] = useState<"DIVERIFIKASI" | "DITOLAK">("DIVERIFIKASI");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -53,7 +53,7 @@ function VerifikasiContent() {
         setSetoranList(res.data);
         // If url had ?id=, open that item
         if (preselectedId) {
-          const found = res.data.find((s) => s.id === parseInt(preselectedId, 10));
+          const found = res.data.find((s) => String(s.id) === String(preselectedId));
           if (found) openVerifyModal(found);
         }
       }
@@ -75,10 +75,10 @@ function VerifikasiContent() {
     setModalError(null);
 
     // Pre-populate weights with estimated weights or existing real weights
-    const weights: Record<number, string> = {};
+    const weights: Record<string, string> = {};
     if (setor.items) {
       setor.items.forEach((it) => {
-        weights[it.id] = (it.beratRiil != null ? it.beratRiil : it.beratEstimasi).toString();
+        weights[String(it.id)] = (it.beratRiil != null ? it.beratRiil : it.beratEstimasi).toString();
       });
     }
     setItemWeights(weights);
@@ -97,14 +97,16 @@ function VerifikasiContent() {
     const itemsPayload: VerifyItemSetorDto[] = [];
     if (verifyAction === "DIVERIFIKASI" && activeSetoran.items) {
       for (const it of activeSetoran.items) {
-        const berat = parseFloat(itemWeights[it.id] || "0");
+        const berat = parseFloat(itemWeights[String(it.id)] || "0");
         if (isNaN(berat) || berat <= 0) {
           setModalError(`Berat riil untuk ${it.kategori?.nama || "item"} harus lebih dari 0 kg.`);
           return;
         }
         itemsPayload.push({
           itemId: it.id,
+          kategoriSampahId: it.kategoriSampahId || it.kategoriId,
           beratRiil: berat,
+          beratKgReal: berat,
         });
       }
     }
@@ -384,9 +386,9 @@ function VerifikasiContent() {
                         step="0.1"
                         min="0.1"
                         label="Berat Timbangan Riil (kg)"
-                        value={itemWeights[it.id] || ""}
+                        value={itemWeights[String(it.id)] || ""}
                         onChange={(e) =>
-                          setItemWeights((prev) => ({ ...prev, [it.id]: e.target.value }))
+                          setItemWeights((prev) => ({ ...prev, [String(it.id)]: e.target.value }))
                         }
                         required
                       />

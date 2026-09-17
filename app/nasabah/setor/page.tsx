@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -15,7 +15,7 @@ import { KategoriSampah, ItemSetorDto } from "@/lib/api/types";
 import Link from "next/link";
 
 interface FormItem {
-  kategoriId: number;
+  kategoriId: string;
   beratEstimasi: string;
   keterangan: string;
 }
@@ -35,7 +35,7 @@ function SetorFormContent() {
   const [catatan, setCatatan] = useState("");
   const [items, setItems] = useState<FormItem[]>([
     {
-      kategoriId: preselectedKategoriId ? parseInt(preselectedKategoriId, 10) : 0,
+      kategoriId: preselectedKategoriId || "",
       beratEstimasi: "1",
       keterangan: "",
     },
@@ -57,7 +57,7 @@ function SetorFormContent() {
             setItems((prev) => [
               {
                 ...prev[0],
-                kategoriId: res.data[0].id,
+                kategoriId: String(res.data[0].id),
               },
             ]);
           }
@@ -79,7 +79,7 @@ function SetorFormContent() {
 
     items.forEach((item) => {
       const berat = parseFloat(item.beratEstimasi) || 0;
-      const cat = categories.find((c) => c.id === item.kategoriId);
+      const cat = categories.find((c) => String(c.id) === String(item.kategoriId));
       if (cat) {
         totalKg += berat;
         totalPoin += Math.round(berat * (cat.poinPerKg || 0));
@@ -91,7 +91,7 @@ function SetorFormContent() {
   }, [items, categories]);
 
   const handleAddItem = () => {
-    const defaultCatId = categories.length > 0 ? categories[0].id : 0;
+    const defaultCatId = categories.length > 0 ? String(categories[0].id) : "";
     setItems((prev) => [
       ...prev,
       {
@@ -138,8 +138,10 @@ function SetorFormContent() {
     }
 
     const payloadItems: ItemSetorDto[] = items.map((it) => ({
-      kategoriId: Number(it.kategoriId),
+      kategoriId: it.kategoriId,
+      kategoriSampahId: it.kategoriId,
       beratEstimasi: parseFloat(it.beratEstimasi),
+      beratKg: parseFloat(it.beratEstimasi),
       keterangan: it.keterangan ? it.keterangan.trim() : undefined,
     }));
 
@@ -275,7 +277,7 @@ function SetorFormContent() {
                           label="Kategori Sampah"
                           value={item.kategoriId}
                           onChange={(e) =>
-                            handleItemChange(idx, "kategoriId", Number(e.target.value))
+                            handleItemChange(idx, "kategoriId", e.target.value)
                           }
                           required
                         >
