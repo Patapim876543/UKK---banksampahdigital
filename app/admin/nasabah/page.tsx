@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
@@ -44,7 +44,7 @@ export default function AdminNasabahPage() {
   const [foto, setFoto] = useState<File | null>(null);
 
   // Delete confirm state
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | number | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -131,7 +131,7 @@ export default function AdminNasabahPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string | number) => {
     try {
       await deleteNasabah(id);
       setFeedback("Nasabah berhasil dihapus.");
