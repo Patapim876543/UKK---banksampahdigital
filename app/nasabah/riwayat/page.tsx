@@ -55,6 +55,14 @@ export default function NasabahRiwayatPage() {
 
   useEffect(() => {
     fetchData();
+
+    const handleFocus = () => {
+      fetchData();
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [fetchData]);
 
   const formatDate = (iso?: string) => {

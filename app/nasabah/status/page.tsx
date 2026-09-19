@@ -46,13 +46,22 @@ export default function NasabahStatusPage() {
 
   useEffect(() => {
     fetchSetoran(selectedBulan);
+
+    const handleFocus = () => {
+      fetchSetoran(selectedBulan);
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [selectedBulan]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "DIVERIFIKASI":
       case "SELESAI":
-        return <Badge variant="success">Diverifikasi / Selesai</Badge>;
+        return <Badge variant="success">Selesai (Poin Aktif)</Badge>;
+      case "DIVERIFIKASI":
+        return <Badge variant="primary">Diverifikasi (Timbangan Dicatat)</Badge>;
       case "MENUNGGU_KONFIRMASI":
         return <Badge variant="warning">Menunggu Konfirmasi</Badge>;
       case "DITOLAK":

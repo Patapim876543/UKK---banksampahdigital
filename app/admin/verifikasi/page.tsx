@@ -38,7 +38,7 @@ function VerifikasiContent() {
   const [activeSetoran, setActiveSetoran] = useState<Setoran | null>(null);
   const [itemWeights, setItemWeights] = useState<Record<string, string>>({});
   const [adminNotes, setAdminNotes] = useState("");
-  const [verifyAction, setVerifyAction] = useState<"DIVERIFIKASI" | "DITOLAK">("DIVERIFIKASI");
+  const [verifyAction, setVerifyAction] = useState<"SELESAI" | "DIVERIFIKASI" | "DITOLAK">("SELESAI");
   const [isVerifying, setIsVerifying] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -69,10 +69,10 @@ function VerifikasiContent() {
     fetchSetoran();
   }, [statusFilter, selectedBulan]);
 
-  const openVerifyModal = (setor: Setoran) => {
+  const openVerifyModal = (setor: Setoran, defaultAction?: "SELESAI" | "DIVERIFIKASI" | "DITOLAK") => {
     setActiveSetoran(setor);
     setAdminNotes(setor.catatanAdmin || "");
-    setVerifyAction("DIVERIFIKASI");
+    setVerifyAction(defaultAction || (setor.status === "DIVERIFIKASI" ? "SELESAI" : "SELESAI"));
     setModalError(null);
 
     // Pre-populate weights with estimated weights or existing real weights
@@ -96,7 +96,7 @@ function VerifikasiContent() {
     setModalError(null);
 
     const itemsPayload: VerifyItemSetorDto[] = [];
-    if (verifyAction === "DIVERIFIKASI" && activeSetoran.items) {
+    if ((verifyAction === "SELESAI" || verifyAction === "DIVERIFIKASI") && activeSetoran.items) {
       for (const it of activeSetoran.items) {
         const berat = parseFloat(itemWeights[String(it.id)] || "0");
         if (isNaN(berat) || berat <= 0) {
@@ -117,10 +117,16 @@ function VerifikasiContent() {
       await verifySetoran(activeSetoran.id, {
         status: verifyAction,
         catatanAdmin: adminNotes.trim() || undefined,
-        items: verifyAction === "DIVERIFIKASI" ? itemsPayload : undefined,
+        items: (verifyAction === "SELESAI" || verifyAction === "DIVERIFIKASI") ? itemsPayload : undefined,
       });
 
-      setFeedback(`Setoran #${activeSetoran.id} berhasil ${verifyAction === "DIVERIFIKASI" ? "diverifikasi" : "ditolak"}.`);
+      const actionDesc =
+        verifyAction === "SELESAI"
+          ? "diselesaikan dan poin nasabah telah diperbarui"
+          : verifyAction === "DIVERIFIKASI"
+          ? "diverifikasi (timbangan tersimpan)"
+          : "ditolak";
+      setFeedback(`Setoran #${activeSetoran.id} berhasil ${actionDesc}.`);
       closeVerifyModal();
       await fetchSetoran();
       setTimeout(() => setFeedback(null), 4000);
@@ -133,9 +139,10 @@ function VerifikasiContent() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "DIVERIFIKASI":
       case "SELESAI":
-        return <Badge variant="success">Diverifikasi</Badge>;
+        return <Badge variant="success">Selesai (Poin Aktif)</Badge>;
+      case "DIVERIFIKASI":
+        return <Badge variant="primary">Diverifikasi (Pending Selesai)</Badge>;
       case "MENUNGGU_KONFIRMASI":
         return <Badge variant="warning">Menunggu Konfirmasi</Badge>;
       case "DITOLAK":
@@ -186,6 +193,7 @@ function VerifikasiContent() {
             {[
               { label: "Menunggu Konfirmasi", value: "MENUNGGU_KONFIRMASI" },
               { label: "Diverifikasi", value: "DIVERIFIKASI" },
+              { label: "Selesai", value: "SELESAI" },
               { label: "Ditolak", value: "DITOLAK" },
               { label: "Semua Status", value: "SEMUA" },
             ].map((st) => (
@@ -311,14 +319,54 @@ function VerifikasiContent() {
                 )}
 
                 {/* Actions */}
-                <div className="flex justify-end gap-3 pt-2">
-                  <Button
-                    variant={item.status === "MENUNGGU_KONFIRMASI" ? "primary" : "secondary-pill"}
-                    size="sm"
-                    onClick={() => openVerifyModal(item)}
-                  >
-                    {item.status === "MENUNGGU_KONFIRMASI" ? "Timbang & Verifikasi" : "Lihat / Edit Verifikasi"}
-                  </Button>
+                <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
+                  {item.status === "MENUNGGU_KONFIRMASI" && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      leftIcon={<CheckCircle2 className="w-4 h-4" />}
+                      onClick={() => openVerifyModal(item, "SELESAI")}
+                    >
+                      Timbang &amp; Selesaikan
+                    </Button>
+                  )}
+                  {item.status === "DIVERIFIKASI" && (
+                    <>
+                      <Button
+                        variant="secondary-pill"
+                        size="sm"
+                        onClick={() => openVerifyModal(item, "DIVERIFIKASI")}
+                      >
+                        Edit Timbangan
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        leftIcon={<CheckCircle2 className="w-4 h-4" />}
+                        onClick={() => openVerifyModal(item, "SELESAI")}
+                      >
+                        Selesaikan &amp; Terbitkan Poin
+                      </Button>
+                    </>
+                  )}
+                  {item.status === "SELESAI" && (
+                    <Button
+                      variant="secondary-pill"
+                      size="sm"
+                      onClick={() => openVerifyModal(item, "SELESAI")}
+                    >
+                      Lihat / Perbarui
+                    </Button>
+                  )}
+                  {item.status === "DITOLAK" && (
+                    <Button
+                      variant="secondary-pill"
+                      size="sm"
+                      onClick={() => openVerifyModal(item, "DITOLAK")}
+                    >
+                      Lihat Detail Penolakan
+                    </Button>
+                  )}
                 </div>
               </Card>
             ))}
@@ -346,37 +394,65 @@ function VerifikasiContent() {
                 <label className="text-[14px] font-semibold text-[#1d1d1f]">
                   Keputusan Verifikasi
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setVerifyAction("SELESAI")}
+                    className={`p-3 rounded-[10px] border text-left transition-all btn-apple-press cursor-pointer flex flex-col justify-between ${
+                      verifyAction === "SELESAI"
+                        ? "bg-[#eaf5ee] border-[#1F7A4D] ring-2 ring-[#1F7A4D]/20 text-[#1F7A4D]"
+                        : "bg-[#ffffff] border-[#e0e0e0] text-[#7a7a7a] hover:border-[#b0b0b0]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-semibold text-[13px]">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-[#1F7A4D]" />
+                      <span>Selesai &amp; Poin</span>
+                    </div>
+                    <span className="text-[11px] text-[#7a7a7a] mt-1">
+                      Finalisasi &amp; terbitkan poin ke nasabah
+                    </span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => setVerifyAction("DIVERIFIKASI")}
-                    className={`p-3 rounded-[8px] border text-[14px] font-semibold flex items-center justify-center gap-2 transition-all btn-apple-press cursor-pointer ${
+                    className={`p-3 rounded-[10px] border text-left transition-all btn-apple-press cursor-pointer flex flex-col justify-between ${
                       verifyAction === "DIVERIFIKASI"
-                        ? "bg-[#eaf5ee] border-[#1F7A4D] text-[#1F7A4D]"
-                        : "bg-[#ffffff] border-[#e0e0e0] text-[#7a7a7a]"
+                        ? "bg-[#eff6ff] border-[#0066cc] ring-2 ring-[#0066cc]/20 text-[#0066cc]"
+                        : "bg-[#ffffff] border-[#e0e0e0] text-[#7a7a7a] hover:border-[#b0b0b0]"
                     }`}
                   >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Terima &amp; Timbang</span>
+                    <div className="flex items-center gap-1.5 font-semibold text-[13px]">
+                      <IconScale className="w-4 h-4 shrink-0 text-[#0066cc]" />
+                      <span>Timbang Saja</span>
+                    </div>
+                    <span className="text-[11px] text-[#7a7a7a] mt-1">
+                      Simpan berat, poin belum diterbitkan
+                    </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setVerifyAction("DITOLAK")}
-                    className={`p-3 rounded-[8px] border text-[14px] font-semibold flex items-center justify-center gap-2 transition-all btn-apple-press cursor-pointer ${
+                    className={`p-3 rounded-[10px] border text-left transition-all btn-apple-press cursor-pointer flex flex-col justify-between ${
                       verifyAction === "DITOLAK"
-                        ? "bg-[#fdf2f2] border-[#D92D20] text-[#D92D20]"
-                        : "bg-[#ffffff] border-[#e0e0e0] text-[#7a7a7a]"
+                        ? "bg-[#fdf2f2] border-[#D92D20] ring-2 ring-[#D92D20]/20 text-[#D92D20]"
+                        : "bg-[#ffffff] border-[#e0e0e0] text-[#7a7a7a] hover:border-[#b0b0b0]"
                     }`}
                   >
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Tolak Setoran</span>
+                    <div className="flex items-center gap-1.5 font-semibold text-[13px]">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-[#D92D20]" />
+                      <span>Tolak Setoran</span>
+                    </div>
+                    <span className="text-[11px] text-[#7a7a7a] mt-1">
+                      Batalkan setoran dengan alasan
+                    </span>
                   </button>
                 </div>
               </div>
 
-              {/* Weight verification per item if verified */}
-              {verifyAction === "DIVERIFIKASI" && activeSetoran.items && activeSetoran.items.length > 0 && (
+              {/* Weight verification per item if verified or finished */}
+              {(verifyAction === "SELESAI" || verifyAction === "DIVERIFIKASI") && activeSetoran.items && activeSetoran.items.length > 0 && (
                 <div className="space-y-3 bg-[#f5f5f7] p-4 rounded-[12px] border border-[#e0e0e0]">
                   <div className="text-[13px] font-semibold text-[#1d1d1f] uppercase tracking-wider">
                     Timbangan Riil per Item (kg)
@@ -422,10 +498,14 @@ function VerifikasiContent() {
                 </Button>
                 <Button
                   type="submit"
-                  variant={verifyAction === "DIVERIFIKASI" ? "primary" : "danger"}
+                  variant={verifyAction === "DITOLAK" ? "danger" : "primary"}
                   isLoading={isVerifying}
                 >
-                  {verifyAction === "DIVERIFIKASI" ? "Simpan Verifikasi" : "Tolak Setoran Ini"}
+                  {verifyAction === "SELESAI"
+                    ? "Selesai & Terbitkan Poin"
+                    : verifyAction === "DIVERIFIKASI"
+                    ? "Simpan Timbangan Saja"
+                    : "Tolak Setoran Ini"}
                 </Button>
               </div>
             </form>

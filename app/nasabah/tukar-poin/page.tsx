@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -52,8 +52,18 @@ export default function NasabahTukarPoinPage() {
   };
 
   useEffect(() => {
+    refreshUser();
     fetchHadiah();
-  }, []);
+
+    const handleFocus = () => {
+      refreshUser();
+      fetchHadiah();
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [refreshUser]);
 
   const filteredHadiah = hadiahList.filter((h) =>
     h.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||

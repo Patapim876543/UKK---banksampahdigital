@@ -69,15 +69,24 @@ export default function NasabahDashboardPage() {
     };
 
     fetchData();
+
+    const handleFocus = () => {
+      fetchData();
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [isAuthenticated, refreshUser]);
 
   const nasabah = user as NasabahProfile;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "DIVERIFIKASI":
       case "SELESAI":
-        return <Badge variant="success">Diverifikasi</Badge>;
+        return <Badge variant="success">Selesai (Poin Aktif)</Badge>;
+      case "DIVERIFIKASI":
+        return <Badge variant="primary">Diverifikasi</Badge>;
       case "MENUNGGU_KONFIRMASI":
         return <Badge variant="warning">Menunggu Konfirmasi</Badge>;
       case "DITOLAK":
@@ -135,7 +144,7 @@ export default function NasabahDashboardPage() {
             value={
               isLoading
                 ? "..."
-                : `${(nasabah?.totalPoin ?? summary?.totalPoin ?? 0).toLocaleString("id-ID")} Poin`
+                : `${(Math.max(nasabah?.totalPoin ?? 0, summary?.totalPoin ?? 0)).toLocaleString("id-ID")} Poin`
             }
             subtext="Dapat ditukarkan dengan hadiah & voucher"
             icon={<Coins className="w-5 h-5 text-[#0066cc]" />}

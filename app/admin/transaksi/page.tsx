@@ -204,14 +204,16 @@ export default function AdminTransaksiPage() {
                         </span>
                         <Badge
                           variant={
-                            s.status === "DIVERIFIKASI" || s.status === "SELESAI"
+                            s.status === "SELESAI"
                               ? "success"
+                              : s.status === "DIVERIFIKASI"
+                              ? "primary"
                               : s.status === "DITOLAK"
                               ? "danger"
                               : "warning"
                           }
                         >
-                          {s.status}
+                          {s.status === "SELESAI" ? "Selesai" : s.status === "DIVERIFIKASI" ? "Diverifikasi" : s.status}
                         </Badge>
                       </div>
                       <div className="text-[14px] text-[#7a7a7a]">

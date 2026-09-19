@@ -174,7 +174,7 @@ export interface VerifyItemSetorDto {
 }
 
 export interface VerifySetorSampahDto {
-  status: "DIVERIFIKASI" | "DITOLAK" | "diverifikasi" | "ditolak" | string;
+  status: "DIVERIFIKASI" | "DITOLAK" | "SELESAI" | "diverifikasi" | "ditolak" | "selesai" | string;
   catatanAdmin?: string;
   items?: VerifyItemSetorDto[];
   itemsReal?: VerifyItemSetorDto[];

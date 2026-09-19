@@ -30,14 +30,21 @@ export function NasabahShell({ children, user, onLogout }: NasabahShellProps) {
   const pathname = usePathname();
   const { user: authUser, logout: authLogout, refreshUser } = useAuth();
 
-  // Auto-refresh user session when navigating between routes
+  // Auto-refresh user session when navigating between routes or when window gains focus
   useEffect(() => {
     refreshUser();
+    const handleFocus = () => {
+      refreshUser();
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [pathname, refreshUser]);
 
   const currentUser = {
-    ...((authUser as NasabahProfile) || {}),
     ...(user || {}),
+    ...((authUser as NasabahProfile) || {}),
   };
   const handleLogout = onLogout || authLogout;
 
