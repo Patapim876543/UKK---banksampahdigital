@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -115,6 +115,8 @@ export default function RegisterNasabahPage() {
                 placeholder="Contoh: Siti Aisyah"
                 value={namaLengkap}
                 onChange={(e) => setNamaLengkap(e.target.value)}
+                autoComplete="name"
+                autoFocus
                 required
               />
 
@@ -144,6 +146,7 @@ export default function RegisterNasabahPage() {
                 placeholder="081234567890"
                 value={nomorTelepon}
                 onChange={(e) => setNomorTelepon(e.target.value)}
+                autoComplete="tel"
                 required
               />
 
@@ -152,6 +155,7 @@ export default function RegisterNasabahPage() {
                 placeholder="Jl. Mawar No. 12, RT 02 / RW 05"
                 value={alamat}
                 onChange={(e) => setAlamat(e.target.value)}
+                autoComplete="street-address"
                 rows={2}
                 required
               />

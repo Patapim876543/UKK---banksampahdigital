@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -116,6 +116,8 @@ export default function RegisterAdminPage() {
                 placeholder="Contoh: Bank Sampah Berkah Hijau RW 05"
                 value={namaUnit}
                 onChange={(e) => setNamaUnit(e.target.value)}
+                autoComplete="organization"
+                autoFocus
                 required
               />
 
@@ -124,6 +126,7 @@ export default function RegisterAdminPage() {
                 placeholder="Contoh: Pak Bambang Irawan"
                 value={namaPengelola}
                 onChange={(e) => setNamaPengelola(e.target.value)}
+                autoComplete="name"
                 required
               />
 

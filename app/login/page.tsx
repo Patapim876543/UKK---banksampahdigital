@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -126,6 +126,7 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoComplete="username"
+                autoFocus
                 required
               />
 
