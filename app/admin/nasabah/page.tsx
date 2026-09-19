@@ -17,6 +17,7 @@ import {
   Search,
   Coins,
   Upload,
+  RefreshCw,
 } from "@/components/icons";
 import { useAuth } from "@/context/auth-context";
 import {
@@ -47,7 +48,9 @@ export default function AdminNasabahPage() {
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const fetchNasabah = async () => {
@@ -122,7 +125,7 @@ export default function AdminNasabahPage() {
       }
 
       setIsModalOpen(false);
-      fetchNasabah();
+      await fetchNasabah();
       setTimeout(() => setFeedback(null), 4000);
     } catch (err: any) {
       setErrorMessage(err.message || "Gagal menyimpan data nasabah.");
@@ -132,14 +135,18 @@ export default function AdminNasabahPage() {
   };
 
   const handleDelete = async (id: string | number) => {
+    setIsDeleting(true);
+    setErrorFeedback(null);
     try {
       await deleteNasabah(id);
       setFeedback("Nasabah berhasil dihapus.");
       setDeletingId(null);
-      fetchNasabah();
+      await fetchNasabah();
       setTimeout(() => setFeedback(null), 4000);
     } catch (err: any) {
-      alert(err.message || "Gagal menghapus nasabah.");
+      setErrorFeedback(err.message || "Gagal menghapus nasabah.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -181,16 +188,27 @@ export default function AdminNasabahPage() {
           </Alert>
         )}
 
-        {/* Search */}
-        <div className="relative w-full max-w-md">
-          <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[#7a7a7a]" />
-          <input
-            type="text"
-            placeholder="Cari nasabah berdasarkan nama, username, no telp..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#ffffff] text-[15px] pl-11 pr-4 py-2.5 rounded-full border border-[#e0e0e0] outline-none"
-          />
+        {/* Search & Refresh Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="relative w-full max-w-md">
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[#7a7a7a]" />
+            <input
+              type="text"
+              placeholder="Cari nasabah berdasarkan nama, username, no telp..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#ffffff] text-[15px] pl-11 pr-4 py-2.5 rounded-full border border-[#e0e0e0] outline-none focus:border-[#0066cc]"
+            />
+          </div>
+          <Button
+            variant="pearl-capsule"
+            size="sm"
+            leftIcon={<RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />}
+            onClick={() => fetchNasabah()}
+            disabled={isLoading}
+          >
+            Segarkan
+          </Button>
         </div>
 
         {/* List of Customers (Apple data-table collapsed to stacked cards on mobile) */}
@@ -372,20 +390,38 @@ export default function AdminNasabahPage() {
         {/* Delete Confirmation Modal */}
         <Modal
           isOpen={deletingId !== null}
-          onClose={() => setDeletingId(null)}
+          onClose={() => {
+            if (!isDeleting) {
+              setDeletingId(null);
+              setErrorFeedback(null);
+            }
+          }}
           title="Konfirmasi Hapus Nasabah"
           maxWidth="sm"
         >
           <div className="space-y-4">
+            {errorFeedback && (
+              <Alert variant="danger" onClose={() => setErrorFeedback(null)}>
+                {errorFeedback}
+              </Alert>
+            )}
             <p className="text-[14px] text-[#7a7a7a]">
               Apakah Anda yakin ingin menghapus data nasabah ini? Tindakan ini tidak dapat dibatalkan.
             </p>
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Button variant="secondary-pill" onClick={() => setDeletingId(null)}>
+              <Button
+                variant="secondary-pill"
+                disabled={isDeleting}
+                onClick={() => {
+                  setDeletingId(null);
+                  setErrorFeedback(null);
+                }}
+              >
                 Batal
               </Button>
               <Button
                 variant="danger"
+                isLoading={isDeleting}
                 onClick={() => deletingId && handleDelete(deletingId)}
               >
                 Hapus Nasabah

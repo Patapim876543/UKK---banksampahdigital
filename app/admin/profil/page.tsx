@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { Card } from "@/components/ui/card";
@@ -13,8 +13,12 @@ import { AppMakerModal } from "@/components/common/app-maker-modal";
 
 export default function AdminProfilPage() {
   const router = useRouter();
-  const { user, logout, appKey } = useAuth();
+  const { user, logout, appKey, refreshUser } = useAuth();
   const [isMakerModalOpen, setIsMakerModalOpen] = useState(false);
+
+  useEffect(() => {
+    refreshUser();
+  }, [refreshUser]);
 
   const admin = user as AdminProfile;
 

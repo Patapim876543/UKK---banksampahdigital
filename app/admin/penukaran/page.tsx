@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
@@ -16,6 +16,7 @@ import {
   Clock,
   AlertCircle,
   Search,
+  RefreshCw,
 } from "@/components/icons";
 import { useAuth } from "@/context/auth-context";
 import { getAllPenukaranAdmin, updateStatusPenukaran } from "@/lib/api/penukaranPoin";
@@ -32,6 +33,7 @@ export default function AdminPenukaranPage() {
   const [activeItem, setActiveItem] = useState<PenukaranPoin | null>(null);
   const [newStatus, setNewStatus] = useState<string>("SELESAI");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const fetchPenukaran = async () => {
@@ -55,14 +57,15 @@ export default function AdminPenukaranPage() {
   const handleUpdateStatus = async () => {
     if (!activeItem) return;
     setIsUpdating(true);
+    setUpdateError(null);
     try {
       await updateStatusPenukaran(activeItem.id, newStatus);
       setFeedback(`Status penukaran #${activeItem.id} berhasil diperbarui menjadi ${newStatus}.`);
       setActiveItem(null);
-      fetchPenukaran();
+      await fetchPenukaran();
       setTimeout(() => setFeedback(null), 4000);
     } catch (err: any) {
-      alert(err.message || "Gagal memperbarui status penukaran.");
+      setUpdateError(err.message || "Gagal memperbarui status penukaran.");
     } finally {
       setIsUpdating(false);
     }
@@ -162,6 +165,15 @@ export default function AdminPenukaranPage() {
                 Reset
               </button>
             )}
+            <Button
+              variant="pearl-capsule"
+              size="sm"
+              leftIcon={<RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />}
+              onClick={() => fetchPenukaran()}
+              disabled={isLoading}
+            >
+              Segarkan
+            </Button>
           </div>
         </div>
 
@@ -228,11 +240,21 @@ export default function AdminPenukaranPage() {
         {/* Update Status Modal */}
         <Modal
           isOpen={!!activeItem}
-          onClose={() => setActiveItem(null)}
+          onClose={() => {
+            if (!isUpdating) {
+              setActiveItem(null);
+              setUpdateError(null);
+            }
+          }}
           title={`Update Status Penukaran #${activeItem?.id}`}
           maxWidth="sm"
         >
           <div className="space-y-4">
+            {updateError && (
+              <Alert variant="danger" onClose={() => setUpdateError(null)}>
+                {updateError}
+              </Alert>
+            )}
             <p className="text-[14px] text-[#7a7a7a]">
               Pilih status penyerahan hadiah untuk nasabah <strong>{activeItem?.nasabah?.namaLengkap}</strong>:
             </p>

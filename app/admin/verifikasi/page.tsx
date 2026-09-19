@@ -18,6 +18,7 @@ import {
   Clock,
   Coins,
   Search,
+  RefreshCw,
 } from "@/components/icons";
 import { useAuth } from "@/context/auth-context";
 import { getAllSetoranAdmin, verifySetoran } from "@/lib/api/setorSampah";
@@ -121,7 +122,7 @@ function VerifikasiContent() {
 
       setFeedback(`Setoran #${activeSetoran.id} berhasil ${verifyAction === "DIVERIFIKASI" ? "diverifikasi" : "ditolak"}.`);
       closeVerifyModal();
-      fetchSetoran();
+      await fetchSetoran();
       setTimeout(() => setFeedback(null), 4000);
     } catch (err: any) {
       setModalError(err.message || "Gagal memproses verifikasi.");
@@ -221,6 +222,15 @@ function VerifikasiContent() {
                 Reset
               </button>
             )}
+            <Button
+              variant="pearl-capsule"
+              size="sm"
+              leftIcon={<RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />}
+              onClick={() => fetchSetoran()}
+              disabled={isLoading}
+            >
+              Segarkan
+            </Button>
           </div>
         </div>
 

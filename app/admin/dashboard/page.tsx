@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -27,7 +27,7 @@ import { DashboardStatsAdmin, Setoran, AdminProfile } from "@/lib/api/types";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const { user, role, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
+  const { user, role, isAuthenticated, isLoading: isAuthLoading, logout, refreshUser } = useAuth();
 
   const [stats, setStats] = useState<DashboardStatsAdmin | null>(null);
   const [pendingSetoran, setPendingSetoran] = useState<Setoran[]>([]);
@@ -46,6 +46,7 @@ export default function AdminDashboardPage() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
+        await refreshUser();
         const [statsRes, setoranRes] = await Promise.allSettled([
           getDashboardStats(),
           getAllSetoranAdmin({ status: "MENUNGGU_KONFIRMASI" }),
@@ -64,7 +65,7 @@ export default function AdminDashboardPage() {
       }
     };
     fetchData();
-  }, [isAuthenticated, role]);
+  }, [isAuthenticated, role, refreshUser]);
 
   const admin = user as AdminProfile;
 

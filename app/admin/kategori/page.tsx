@@ -17,6 +17,7 @@ import {
   Coins,
   Upload,
   Search,
+  RefreshCw,
 } from "@/components/icons";
 import { useAuth } from "@/context/auth-context";
 import {
@@ -45,7 +46,9 @@ export default function AdminKategoriPage() {
 
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorFeedback, setErrorFeedback] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const fetchCategories = async () => {
@@ -126,7 +129,7 @@ export default function AdminKategoriPage() {
       }
 
       setIsModalOpen(false);
-      fetchCategories();
+      await fetchCategories();
       setTimeout(() => setFeedback(null), 4000);
     } catch (err: any) {
       setErrorMessage(err.message || "Gagal menyimpan kategori.");
@@ -136,14 +139,18 @@ export default function AdminKategoriPage() {
   };
 
   const handleDelete = async (id: string | number) => {
+    setIsDeleting(true);
+    setErrorFeedback(null);
     try {
       await deleteKategoriSampah(id);
       setFeedback("Kategori berhasil dihapus.");
       setDeletingId(null);
-      fetchCategories();
+      await fetchCategories();
       setTimeout(() => setFeedback(null), 4000);
     } catch (err: any) {
-      alert(err.message || "Gagal menghapus kategori.");
+      setErrorFeedback(err.message || "Gagal menghapus kategori.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -180,16 +187,27 @@ export default function AdminKategoriPage() {
           </Alert>
         )}
 
-        {/* Search */}
-        <div className="relative w-full max-w-md">
-          <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[#7a7a7a]" />
-          <input
-            type="text"
-            placeholder="Cari kategori sampah..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#ffffff] text-[15px] pl-11 pr-4 py-2.5 rounded-full border border-[#e0e0e0] outline-none"
-          />
+        {/* Search & Refresh Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="relative w-full max-w-md">
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[#7a7a7a]" />
+            <input
+              type="text"
+              placeholder="Cari kategori sampah..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#ffffff] text-[15px] pl-11 pr-4 py-2.5 rounded-full border border-[#e0e0e0] outline-none focus:border-[#0066cc]"
+            />
+          </div>
+          <Button
+            variant="pearl-capsule"
+            size="sm"
+            leftIcon={<RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />}
+            onClick={() => fetchCategories()}
+            disabled={isLoading}
+          >
+            Segarkan
+          </Button>
         </div>
 
         {/* Categories Grid */}
@@ -370,20 +388,38 @@ export default function AdminKategoriPage() {
         {/* Delete Confirmation */}
         <Modal
           isOpen={deletingId !== null}
-          onClose={() => setDeletingId(null)}
+          onClose={() => {
+            if (!isDeleting) {
+              setDeletingId(null);
+              setErrorFeedback(null);
+            }
+          }}
           title="Hapus Kategori Sampah"
           maxWidth="sm"
         >
           <div className="space-y-4">
+            {errorFeedback && (
+              <Alert variant="danger" onClose={() => setErrorFeedback(null)}>
+                {errorFeedback}
+              </Alert>
+            )}
             <p className="text-[14px] text-[#7a7a7a]">
               Apakah Anda yakin ingin menghapus kategori sampah ini? Kategori yang sudah memiliki riwayat setoran tidak disarankan untuk dihapus.
             </p>
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Button variant="secondary-pill" onClick={() => setDeletingId(null)}>
+              <Button
+                variant="secondary-pill"
+                disabled={isDeleting}
+                onClick={() => {
+                  setDeletingId(null);
+                  setErrorFeedback(null);
+                }}
+              >
                 Batal
               </Button>
               <Button
                 variant="danger"
+                isLoading={isDeleting}
                 onClick={() => deletingId && handleDelete(deletingId)}
               >
                 Hapus Kategori

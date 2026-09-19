@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
@@ -13,6 +13,7 @@ import {
   Gift,
   Coins,
   Search,
+  RefreshCw,
 } from "@/components/icons";
 import { useAuth } from "@/context/auth-context";
 import { getAllSetoranAdmin } from "@/lib/api/setorSampah";
@@ -159,6 +160,16 @@ export default function AdminTransaksiPage() {
                 </button>
               )}
             </div>
+
+            <Button
+              variant="pearl-capsule"
+              size="sm"
+              leftIcon={<RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />}
+              onClick={() => fetchData()}
+              disabled={isLoading}
+            >
+              Segarkan
+            </Button>
           </div>
         </div>
 
