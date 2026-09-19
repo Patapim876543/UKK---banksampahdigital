@@ -25,6 +25,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
     setErrorMessage(null);
 
     if (!appKey) {
@@ -127,6 +128,7 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 autoComplete="username"
                 autoFocus
+                disabled={isLoading}
                 required
               />
 
@@ -137,6 +139,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
+                disabled={isLoading}
                 required
               />
 
@@ -146,6 +149,7 @@ export default function LoginPage() {
                   variant="primary"
                   className="w-full py-3"
                   isLoading={isLoading}
+                  disabled={isLoading}
                 >
                   Masuk Akun
                 </Button>
