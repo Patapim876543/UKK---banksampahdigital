@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NasabahShell } from "@/components/layout/nasabah-shell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,12 @@ import { useRouter } from "next/navigation";
 
 export default function NasabahProfilPage() {
   const router = useRouter();
-  const { user, logout, appKey } = useAuth();
+  const { user, logout, appKey, refreshUser } = useAuth();
   const [isMakerModalOpen, setIsMakerModalOpen] = useState(false);
+
+  useEffect(() => {
+    refreshUser();
+  }, [refreshUser]);
 
   const nasabah = user as NasabahProfile;
 

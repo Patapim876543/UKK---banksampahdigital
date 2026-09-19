@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -14,6 +14,7 @@ import {
   Calendar,
   Gift,
   FileText,
+  RefreshCw,
 } from "@/components/icons";
 import { useAuth } from "@/context/auth-context";
 import { getMySetoran } from "@/lib/api/setorSampah";
@@ -30,30 +31,31 @@ export default function NasabahRiwayatPage() {
 
   const nasabah = user as NasabahProfile;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        await refreshUser();
-        const [setoranRes, penukaranRes] = await Promise.allSettled([
-          getMySetoran(selectedBulan || undefined),
-          getMyPenukaran(),
-        ]);
+  const fetchData = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await refreshUser();
+      const [setoranRes, penukaranRes] = await Promise.allSettled([
+        getMySetoran(selectedBulan || undefined),
+        getMyPenukaran(),
+      ]);
 
-        if (setoranRes.status === "fulfilled" && setoranRes.value.data) {
-          setSetoranList(setoranRes.value.data);
-        }
-        if (penukaranRes.status === "fulfilled" && penukaranRes.value.data) {
-          setPenukaranList(penukaranRes.value.data);
-        }
-      } catch (err) {
-        console.error("Gagal mengambil riwayat:", err);
-      } finally {
-        setIsLoading(false);
+      if (setoranRes.status === "fulfilled" && setoranRes.value.data) {
+        setSetoranList(setoranRes.value.data);
       }
-    };
-    fetchData();
+      if (penukaranRes.status === "fulfilled" && penukaranRes.value.data) {
+        setPenukaranList(penukaranRes.value.data);
+      }
+    } catch (err) {
+      console.error("Gagal mengambil riwayat:", err);
+    } finally {
+      setIsLoading(false);
+    }
   }, [selectedBulan, refreshUser]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const formatDate = (iso?: string) => {
     if (!iso) return "-";
@@ -132,27 +134,38 @@ export default function NasabahRiwayatPage() {
             </button>
           </div>
 
-          {/* Month selector for setoran */}
-          {activeTab === "setoran" && (
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#7a7a7a]" />
-              <input
-                type="month"
-                value={selectedBulan}
-                onChange={(e) => setSelectedBulan(e.target.value)}
-                className="bg-[#f5f5f7] text-[#1d1d1f] text-[13px] font-semibold px-3 py-1.5 rounded-full border border-[#e0e0e0] outline-none"
-              />
-              {selectedBulan && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedBulan("")}
-                  className="text-[12px] text-[#0066cc] hover:underline"
-                >
-                  Reset
-                </button>
-              )}
-            </div>
-          )}
+          {/* Filter & Refresh Controls */}
+          <div className="flex items-center gap-3">
+            {activeTab === "setoran" && (
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[#7a7a7a]" />
+                <input
+                  type="month"
+                  value={selectedBulan}
+                  onChange={(e) => setSelectedBulan(e.target.value)}
+                  className="bg-[#f5f5f7] text-[#1d1d1f] text-[13px] font-semibold px-3 py-1.5 rounded-full border border-[#e0e0e0] outline-none"
+                />
+                {selectedBulan && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBulan("")}
+                    className="text-[12px] text-[#0066cc] hover:underline"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+            )}
+            <Button
+              variant="pearl-capsule"
+              size="sm"
+              leftIcon={<RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />}
+              onClick={() => fetchData()}
+              disabled={isLoading}
+            >
+              Segarkan
+            </Button>
+          </div>
         </div>
 
         {/* Tab 1: Penyetoran Sampah */}
@@ -209,11 +222,24 @@ export default function NasabahRiwayatPage() {
                     <div className="flex items-center justify-between sm:justify-end gap-6 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#f0f0f0]">
                       <div className="text-left sm:text-right">
                         <div className="text-[17px] font-semibold text-[#1d1d1f]">
-                          {item.totalBeratRiil != null ? item.totalBeratRiil : item.totalBeratEstimasi} kg
+                          {item.totalBeratRiil != null ? `${item.totalBeratRiil} kg` : `${item.totalBeratEstimasi} kg`}
+                          <span className="text-[12px] text-[#7a7a7a] font-normal ml-1">
+                            {item.totalBeratRiil != null ? "(Riil)" : "(Est)"}
+                          </span>
                         </div>
-                        <div className="text-[14px] font-semibold text-[#1F7A4D]">
-                          +{item.totalPoinRiil != null ? item.totalPoinRiil : item.totalPoinEstimasi} Poin
-                        </div>
+                        {item.status === "DITOLAK" ? (
+                          <div className="text-[14px] font-semibold text-[#7a7a7a]">
+                            0 Poin <span className="text-[12px] font-normal">(Ditolak)</span>
+                          </div>
+                        ) : item.status === "MENUNGGU_KONFIRMASI" ? (
+                          <div className="text-[14px] font-semibold text-[#B45309]">
+                            +{item.totalPoinEstimasi} Poin <span className="text-[12px] font-normal">(Estimasi)</span>
+                          </div>
+                        ) : (
+                          <div className="text-[14px] font-semibold text-[#1F7A4D]">
+                            +{item.totalPoinRiil != null ? item.totalPoinRiil : item.totalPoinEstimasi} Poin <span className="text-[12px] font-normal">(Riil)</span>
+                          </div>
+                        )}
                       </div>
 
                       {(item.status === "DIVERIFIKASI" || item.status === "SELESAI") && (

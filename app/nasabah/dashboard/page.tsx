@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -237,16 +237,24 @@ export default function NasabahDashboardPage() {
                   <div className="flex items-center justify-between sm:justify-end gap-6 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#f0f0f0]">
                     <div className="text-left sm:text-right">
                       <div className="text-[17px] font-semibold text-[#1d1d1f]">
-                        {item.totalBeratRiil != null ? item.totalBeratRiil : item.totalBeratEstimasi} kg
-                        {item.totalBeratRiil != null && (
-                          <span className="text-[12px] text-[#1F7A4D] font-normal ml-1">
-                            (Riil)
-                          </span>
-                        )}
+                        {item.totalBeratRiil != null ? `${item.totalBeratRiil} kg` : `${item.totalBeratEstimasi} kg`}
+                        <span className="text-[12px] text-[#7a7a7a] font-normal ml-1">
+                          {item.totalBeratRiil != null ? "(Riil)" : "(Est)"}
+                        </span>
                       </div>
-                      <div className="text-[14px] font-semibold text-[#1F7A4D]">
-                        +{item.totalPoinRiil != null ? item.totalPoinRiil : item.totalPoinEstimasi} Poin
-                      </div>
+                      {item.status === "DITOLAK" ? (
+                        <div className="text-[14px] font-semibold text-[#7a7a7a]">
+                          0 Poin <span className="text-[12px] font-normal">(Ditolak)</span>
+                        </div>
+                      ) : item.status === "MENUNGGU_KONFIRMASI" ? (
+                        <div className="text-[14px] font-semibold text-[#B45309]">
+                          +{item.totalPoinEstimasi} Poin <span className="text-[12px] font-normal">(Estimasi)</span>
+                        </div>
+                      ) : (
+                        <div className="text-[14px] font-semibold text-[#1F7A4D]">
+                          +{item.totalPoinRiil != null ? item.totalPoinRiil : item.totalPoinEstimasi} Poin <span className="text-[12px] font-normal">(Riil)</span>
+                        </div>
+                      )}
                     </div>
 
                     <Link

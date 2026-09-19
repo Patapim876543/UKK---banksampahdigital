@@ -24,7 +24,7 @@ function SetorFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedKategoriId = searchParams.get("kategoriId");
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
 
   const [categories, setCategories] = useState<KategoriSampah[]>([]);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
@@ -154,6 +154,7 @@ function SetorFormContent() {
       });
 
       if (res.data) {
+        await refreshUser();
         setSuccessMessage("Pengajuan setoran berhasil dikirim! Menunggu konfirmasi admin unit...");
         setTimeout(() => {
           router.push("/nasabah/status");

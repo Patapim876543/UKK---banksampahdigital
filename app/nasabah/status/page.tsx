@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -16,21 +16,23 @@ import {
   AlertCircle,
   Plus,
   Coins,
+  RefreshCw,
 } from "@/components/icons";
 import { useAuth } from "@/context/auth-context";
 import { getMySetoran } from "@/lib/api/setorSampah";
 import { Setoran } from "@/lib/api/types";
 
 export default function NasabahStatusPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const [setoranList, setSetoranList] = useState<Setoran[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedBulan, setSelectedBulan] = useState<string>("");
+  const [selectedBulan, setSelectedBulan] = useState<string>("" );
   const [filterStatus, setFilterStatus] = useState<string>("SEMUA");
 
   const fetchSetoran = async (bulan?: string) => {
     setIsLoading(true);
     try {
+      await refreshUser();
       const res = await getMySetoran(bulan || undefined);
       if (res.data) {
         setSetoranList(res.data);
@@ -141,6 +143,15 @@ export default function NasabahStatusPage() {
                 Reset
               </button>
             )}
+            <Button
+              variant="pearl-capsule"
+              size="sm"
+              leftIcon={<RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />}
+              onClick={() => fetchSetoran(selectedBulan)}
+              disabled={isLoading}
+            >
+              Segarkan
+            </Button>
           </div>
         </div>
 
@@ -184,7 +195,13 @@ export default function NasabahStatusPage() {
                     <span>Kategori</span>
                     <span className="text-right sm:text-left">Berat Estimasi</span>
                     <span className="hidden sm:inline">Berat Riil</span>
-                    <span className="text-right">Estimasi Poin</span>
+                    <span className="text-right">
+                      {item.status === "DIVERIFIKASI" || item.status === "SELESAI"
+                        ? "Poin Riil"
+                        : item.status === "DITOLAK"
+                        ? "Status Poin"
+                        : "Estimasi Poin"}
+                    </span>
                   </div>
                   {item.items && item.items.length > 0 ? (
                     item.items.map((it, idx) => (
@@ -201,8 +218,16 @@ export default function NasabahStatusPage() {
                         <span className="hidden sm:inline font-semibold">
                           {it.beratRiil != null ? `${it.beratRiil} kg` : "-"}
                         </span>
-                        <span className="text-right font-semibold text-[#1F7A4D]">
-                          +{it.poinRiil != null ? it.poinRiil : it.poinEstimasi} Poin
+                        <span
+                          className={`text-right font-semibold ${
+                            item.status === "DITOLAK" ? "text-[#7a7a7a]" : "text-[#1F7A4D]"
+                          }`}
+                        >
+                          {item.status === "DITOLAK"
+                            ? "0 Poin"
+                            : item.status === "MENUNGGU_KONFIRMASI"
+                            ? `+${it.poinEstimasi} Poin`
+                            : `+${it.poinRiil != null ? it.poinRiil : it.poinEstimasi} Poin`}
                         </span>
                       </div>
                     ))
@@ -247,9 +272,19 @@ export default function NasabahStatusPage() {
                       <div className="text-[11px] text-[#7a7a7a] uppercase font-semibold">
                         Poin Diterima
                       </div>
-                      <div className="text-[17px] font-semibold text-[#1F7A4D]">
-                        +{item.totalPoinRiil != null ? item.totalPoinRiil : item.totalPoinEstimasi} Poin
-                      </div>
+                      {item.status === "DITOLAK" ? (
+                        <div className="text-[17px] font-semibold text-[#7a7a7a]">
+                          0 Poin <span className="text-[13px] font-normal">(Ditolak)</span>
+                        </div>
+                      ) : item.status === "MENUNGGU_KONFIRMASI" ? (
+                        <div className="text-[17px] font-semibold text-[#B45309]">
+                          +{item.totalPoinEstimasi} Poin <span className="text-[13px] font-normal">(Estimasi)</span>
+                        </div>
+                      ) : (
+                        <div className="text-[17px] font-semibold text-[#1F7A4D]">
+                          +{item.totalPoinRiil != null ? item.totalPoinRiil : item.totalPoinEstimasi} Poin <span className="text-[13px] font-normal">(Riil)</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
