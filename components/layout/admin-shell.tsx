@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -17,6 +17,8 @@ import {
   Coins,
   PackageCheck,
 } from "@/components/icons";
+import { useAuth } from "@/context/auth-context";
+import { AdminProfile } from "@/lib/api/types";
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -30,6 +32,18 @@ interface AdminShellProps {
 
 export function AdminShell({ children, user, onLogout }: AdminShellProps) {
   const pathname = usePathname();
+  const { user: authUser, logout: authLogout, refreshUser } = useAuth();
+
+  // Auto-refresh admin session when navigating between routes
+  useEffect(() => {
+    refreshUser();
+  }, [pathname, refreshUser]);
+
+  const currentUser = {
+    ...((authUser as AdminProfile) || {}),
+    ...(user || {}),
+  };
+  const handleLogout = onLogout || authLogout;
 
   const menuItems = [
     { label: "Dashboard", href: "/admin/dashboard", icon: BarChart3 },
@@ -60,7 +74,7 @@ export function AdminShell({ children, user, onLogout }: AdminShellProps) {
           <IconRecycle className="w-6 h-6 text-[#2997ff]" />
           <div>
             <div className="text-[14px] font-semibold tracking-tight text-white">
-              {user?.namaUnit || "EcoBank Unit"}
+              {currentUser?.namaUnit || "EcoBank Unit"}
             </div>
             <div className="text-[11px] text-[#7a7a7a] -mt-0.5">Admin Portal</div>
           </div>
@@ -93,14 +107,14 @@ export function AdminShell({ children, user, onLogout }: AdminShellProps) {
           <div className="flex items-center justify-between">
             <div className="truncate pr-2">
               <div className="text-[13px] font-semibold text-white truncate">
-                {user?.namaPengelola || user?.username || "Admin"}
+                {currentUser?.namaPengelola || currentUser?.username || "Admin"}
               </div>
               <div className="text-[11px] text-[#7a7a7a] truncate">Pengelola Unit</div>
             </div>
-            {onLogout && (
+            {handleLogout && (
               <button
                 type="button"
-                onClick={onLogout}
+                onClick={handleLogout}
                 title="Keluar"
                 className="p-2 rounded-[8px] hover:bg-[#272729] text-[#cccccc] hover:text-white transition-colors cursor-pointer"
               >
@@ -117,12 +131,12 @@ export function AdminShell({ children, user, onLogout }: AdminShellProps) {
         <header className="lg:hidden sticky top-0 z-30 w-full h-[48px] bg-[#000000] text-white flex items-center justify-between px-4 border-b border-[#272729]">
           <div className="flex items-center gap-2">
             <IconRecycle className="w-5 h-5 text-[#2997ff]" />
-            <span className="text-[14px] font-semibold">{user?.namaUnit || "EcoBank Unit"}</span>
+            <span className="text-[14px] font-semibold">{currentUser?.namaUnit || "EcoBank Unit"}</span>
           </div>
-          {onLogout && (
+          {handleLogout && (
             <button
               type="button"
-              onClick={onLogout}
+              onClick={handleLogout}
               className="text-[#cccccc] hover:text-white text-[12px] flex items-center gap-1 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -137,7 +151,7 @@ export function AdminShell({ children, user, onLogout }: AdminShellProps) {
         </main>
 
         {/* Mobile Bottom Bar */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#ffffff] border-t border-[#e0e0e0] flex items-center justify-around h-[60px] px-2">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#ffffff] border-t border-[#e0e0e0] flex items-center justify-around h-[64px] px-2 shadow-sm">
           {mobileNavItems.map((item) => {
             const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
             const Icon = item.icon;
@@ -145,12 +159,12 @@ export function AdminShell({ children, user, onLogout }: AdminShellProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+                className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 transition-colors ${
                   isActive ? "text-[#0066cc]" : "text-[#7a7a7a] hover:text-[#1d1d1f]"
                 }`}
               >
-                <Icon className="w-5 h-5 mb-0.5" />
-                <span className="text-[11px] font-semibold tracking-tight">{item.label}</span>
+                <Icon className={`w-5 h-5 mb-0.5 ${isActive ? "text-[#0066cc]" : "text-[#7a7a7a]"}`} />
+                <span className={`text-[11px] tracking-tight ${isActive ? "font-semibold" : "font-normal"}`}>{item.label}</span>
               </Link>
             );
           })}

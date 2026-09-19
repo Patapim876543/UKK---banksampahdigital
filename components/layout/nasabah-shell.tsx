@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -13,6 +13,8 @@ import {
   LogOut,
   Layers,
 } from "@/components/icons";
+import { useAuth } from "@/context/auth-context";
+import { NasabahProfile } from "@/lib/api/types";
 
 interface NasabahShellProps {
   children: React.ReactNode;
@@ -26,6 +28,18 @@ interface NasabahShellProps {
 
 export function NasabahShell({ children, user, onLogout }: NasabahShellProps) {
   const pathname = usePathname();
+  const { user: authUser, logout: authLogout, refreshUser } = useAuth();
+
+  // Auto-refresh user session when navigating between routes
+  useEffect(() => {
+    refreshUser();
+  }, [pathname, refreshUser]);
+
+  const currentUser = {
+    ...((authUser as NasabahProfile) || {}),
+    ...(user || {}),
+  };
+  const handleLogout = onLogout || authLogout;
 
   const navItems = [
     { label: "Beranda", href: "/nasabah/dashboard", icon: Home },
@@ -56,16 +70,21 @@ export function NasabahShell({ children, user, onLogout }: NasabahShellProps) {
               Nasabah
             </span>
           </Link>
-          <div className="flex items-center gap-4 text-[12px] text-[#cccccc]">
-            {user && (
+          <div className="flex items-center gap-3 text-[12px] text-[#cccccc]">
+            {currentUser?.totalPoin !== undefined && (
+              <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#1F7A4D]/20 text-[#30d158] text-[12px] font-semibold">
+                <span>{currentUser.totalPoin.toLocaleString("id-ID")} Poin</span>
+              </div>
+            )}
+            {currentUser && (
               <span className="hidden sm:inline">
-                Halo, <strong className="text-white">{user.namaLengkap || user.username}</strong>
+                Halo, <strong className="text-white">{currentUser.namaLengkap || currentUser.username}</strong>
               </span>
             )}
-            {onLogout && (
+            {handleLogout && (
               <button
                 type="button"
-                onClick={onLogout}
+                onClick={handleLogout}
                 className="flex items-center gap-1.5 text-[#cccccc] hover:text-white transition-colors cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -101,9 +120,9 @@ export function NasabahShell({ children, user, onLogout }: NasabahShellProps) {
           </div>
 
           <div className="flex items-center gap-3">
-            {user?.totalPoin !== undefined && (
+            {currentUser?.totalPoin !== undefined && (
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#eaf5ee] text-[#1F7A4D] text-[14px] font-semibold">
-                <span>{user.totalPoin.toLocaleString("id-ID")} Poin</span>
+                <span>{currentUser.totalPoin.toLocaleString("id-ID")} Poin</span>
               </div>
             )}
             <Link
@@ -122,7 +141,7 @@ export function NasabahShell({ children, user, onLogout }: NasabahShellProps) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#ffffff] border-t border-[#e0e0e0] flex items-center justify-around h-[60px] px-2 safe-area-pb">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#ffffff] border-t border-[#e0e0e0] flex items-center justify-around h-[64px] px-2 safe-area-pb shadow-sm">
         {mobileNavItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
           const Icon = item.icon;
@@ -130,12 +149,12 @@ export function NasabahShell({ children, user, onLogout }: NasabahShellProps) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+              className={`flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 transition-colors ${
                 isActive ? "text-[#0066cc]" : "text-[#7a7a7a] hover:text-[#1d1d1f]"
               }`}
             >
-              <Icon className="w-5 h-5 mb-0.5" />
-              <span className="text-[11px] font-semibold tracking-tight">{item.label}</span>
+              <Icon className={`w-5 h-5 mb-0.5 ${isActive ? "text-[#0066cc]" : "text-[#7a7a7a]"}`} />
+              <span className={`text-[11px] tracking-tight ${isActive ? "font-semibold" : "font-normal"}`}>{item.label}</span>
             </Link>
           );
         })}
