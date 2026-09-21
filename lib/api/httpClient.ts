@@ -11,9 +11,10 @@ export const STORAGE_KEYS = {
   APP_MAKER_DATA: "ecobank_app_maker_data",
 };
 
-export function getStoredAppKey(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(STORAGE_KEYS.APP_KEY);
+export const FIXED_APP_KEY = "9cce9564-d3ca-4786-94a9-7b29ac59cf36";
+
+export function getStoredAppKey(): string {
+  return process.env.NEXT_PUBLIC_APP_KEY || FIXED_APP_KEY;
 }
 
 export function setStoredAppKey(key: string): void {

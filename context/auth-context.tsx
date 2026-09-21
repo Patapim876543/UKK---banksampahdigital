@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import {
@@ -29,7 +29,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [appKey, setAppKeyState] = useState<string | null>(null);
+  const [appKey, setAppKeyState] = useState<string | null>(getStoredAppKey());
   const [token, setTokenState] = useState<string | null>(null);
   const [role, setRoleState] = useState<UserRole | null>(null);
   const [user, setUserState] = useState<(NasabahProfile | AdminProfile) | null>(null);

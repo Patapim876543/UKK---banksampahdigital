@@ -8,13 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { User, LogOut, Coins, Key, Shield } from "@/components/icons";
 import { useAuth } from "@/context/auth-context";
 import { NasabahProfile } from "@/lib/api/types";
-import { AppMakerModal } from "@/components/common/app-maker-modal";
 import { useRouter } from "next/navigation";
 
 export default function NasabahProfilPage() {
   const router = useRouter();
   const { user, logout, appKey, refreshUser } = useAuth();
-  const [isMakerModalOpen, setIsMakerModalOpen] = useState(false);
 
   useEffect(() => {
     refreshUser();
@@ -88,24 +86,15 @@ export default function NasabahProfilPage() {
 
         {/* Tenant App Key Section */}
         <Card className="p-6 bg-white space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 font-semibold text-[17px] text-[#1d1d1f]">
-              <Key className="w-5 h-5 text-[#0066cc]" />
-              <span>Koneksi App Key Siswa</span>
-            </div>
-            <Button
-              size="sm"
-              variant="pearl-capsule"
-              onClick={() => setIsMakerModalOpen(true)}
-            >
-              Ganti Key
-            </Button>
+          <div className="flex items-center gap-2 font-semibold text-[17px] text-[#1d1d1f]">
+            <Key className="w-5 h-5 text-[#0066cc]" />
+            <span>Koneksi App Key Siswa (Fixed)</span>
           </div>
           <p className="text-[13px] text-[#7a7a7a]">
-            Setiap data tersimpan di backend SMK Telkom Malang berdasarkan App Key siswa pengembang.
+            Backend SMK Telkom Malang memisahkan data tenant berdasarkan header x-app-key.
           </p>
           <div className="p-3 bg-[#f5f5f7] rounded-[8px] font-mono text-[13px] text-[#0066cc] truncate">
-            {appKey || "Belum ada App Key aktif"}
+            {appKey || "9cce9564-d3ca-4786-94a9-7b29ac59cf36"}
           </div>
         </Card>
 
@@ -120,11 +109,6 @@ export default function NasabahProfilPage() {
           </Button>
         </div>
       </div>
-
-      <AppMakerModal
-        isOpen={isMakerModalOpen}
-        onClose={() => setIsMakerModalOpen(false)}
-      />
     </NasabahShell>
   );
 }

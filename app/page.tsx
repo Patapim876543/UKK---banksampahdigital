@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -13,15 +13,11 @@ import {
   Shield,
   ArrowRight,
   Sparkles,
-  Key,
 } from "@/components/icons";
-import { AppMakerModal } from "@/components/common/app-maker-modal";
-import { DevSeedButton } from "@/components/common/dev-seed-button";
 import { useAuth } from "@/context/auth-context";
 
 export default function HomePage() {
-  const [isMakerModalOpen, setIsMakerModalOpen] = useState(false);
-  const { appKey, isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col bg-[#ffffff] text-[#1d1d1f]">
@@ -34,23 +30,6 @@ export default function HomePage() {
           </Link>
 
           <div className="flex items-center gap-3">
-            {/* Dev Sample Data Button */}
-            <DevSeedButton />
-
-            {/* App Maker Key Status / Button */}
-            <button
-              type="button"
-              onClick={() => setIsMakerModalOpen(true)}
-              className={`flex items-center gap-1.5 px-3 py-1 text-[12px] font-semibold rounded-full border transition-all btn-apple-press cursor-pointer ${
-                appKey
-                  ? "bg-[#272729] text-[#2997ff] border-[#2997ff]/40"
-                  : "bg-[#0066cc] text-white border-[#0066cc]"
-              }`}
-            >
-              <Key className="w-3.5 h-3.5" />
-              <span>{appKey ? "App Key Aktif" : "Atur App Key Siswa"}</span>
-            </button>
-
             {isAuthenticated ? (
               <Link
                 href={role === "ADMIN" ? "/admin/dashboard" : "/nasabah/dashboard"}
@@ -319,15 +298,6 @@ export default function HomePage() {
               <h4 className="font-semibold text-[#1d1d1f] mb-3">Integrasi Backend</h4>
               <ul className="space-y-2">
                 <li>
-                  <button
-                    type="button"
-                    onClick={() => setIsMakerModalOpen(true)}
-                    className="hover:text-[#0066cc] text-left cursor-pointer"
-                  >
-                    Pengaturan App Key
-                  </button>
-                </li>
-                <li>
                   <a
                     href="https://learn.smktelkom-mlg.sch.id/bank_sampah/api/docs"
                     target="_blank"
@@ -353,12 +323,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-
-      {/* App Maker Onboarding Modal */}
-      <AppMakerModal
-        isOpen={isMakerModalOpen}
-        onClose={() => setIsMakerModalOpen(false)}
-      />
     </div>
   );
 }

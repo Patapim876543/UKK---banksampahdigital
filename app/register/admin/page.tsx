@@ -7,14 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
-import { IconRecycle, Building, Key } from "@/components/icons";
+import { IconRecycle, Building } from "@/components/icons";
 import { registerAdmin } from "@/lib/api/auth";
-import { useAuth } from "@/context/auth-context";
-import { AppMakerModal } from "@/components/common/app-maker-modal";
 
 export default function RegisterAdminPage() {
   const router = useRouter();
-  const { appKey } = useAuth();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -25,18 +22,12 @@ export default function RegisterAdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isMakerModalOpen, setIsMakerModalOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
     setErrorMessage(null);
     setSuccessMessage(null);
-
-    if (!appKey) {
-      setErrorMessage("App Key siswa belum diatur. Silakan atur App Key terlebih dahulu.");
-      setIsMakerModalOpen(true);
-      return;
-    }
 
     setIsLoading(true);
     try {
@@ -70,14 +61,6 @@ export default function RegisterAdminPage() {
             <IconRecycle className="w-5 h-5 text-[#2997ff]" />
             <span className="text-[14px] font-semibold text-white">EcoBank Digital</span>
           </Link>
-          <button
-            type="button"
-            onClick={() => setIsMakerModalOpen(true)}
-            className="text-[12px] text-[#2997ff] hover:underline flex items-center gap-1 cursor-pointer"
-          >
-            <Key className="w-3.5 h-3.5" />
-            <span>{appKey ? "App Key: Terpasang" : "Atur App Key"}</span>
-          </button>
         </div>
       </div>
 
@@ -187,11 +170,6 @@ export default function RegisterAdminPage() {
       <div className="py-6 text-center text-[12px] text-[#7a7a7a]">
         EcoBank Digital &copy; 2026 — UKK RPL Paket A
       </div>
-
-      <AppMakerModal
-        isOpen={isMakerModalOpen}
-        onClose={() => setIsMakerModalOpen(false)}
-      />
     </div>
   );
 }
